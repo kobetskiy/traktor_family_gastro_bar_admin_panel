@@ -20,24 +20,29 @@ class _AppScreenState extends State<AppScreen> {
 
   @override
   Widget build(BuildContext context) {
-    void sendDataToDB() {
+    Future<T?> showAlertDialog<T>(String text) {
+      return showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(text),
+        ),
+      );
+    }
+
+    void sendDataToDB() async {
       if (titleController.text.trim() != "" &&
           contentController.text.trim() != "" &&
           appBarTitleController.text.trim() != "" &&
           selectedImage != null) {
-        imagePickerService.saveToDatabase(
+        await imagePickerService.saveToDatabase(
           title: titleController.text.trim(),
           content: contentController.text.trim(),
           appBarTitle: appBarTitleController.text.trim(),
           image: selectedImage!,
         );
+        showAlertDialog('Data has been sent successfuly');
       } else {
-        showDialog(
-          context: context,
-          builder: (context) => const AlertDialog(
-            title: Text("Text fields must be full and image must be loaded"),
-          ),
-        );
+        showAlertDialog("Text fields must be full and image must be loaded");
       }
     }
 
@@ -108,8 +113,8 @@ class OutlinedButtonWidget extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.width = 200,
-    this.height = 200,
+    this.width = 100,
+    this.height = 100,
   });
 
   final String text;
@@ -125,7 +130,7 @@ class OutlinedButtonWidget extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: ButtonStyle(
-          shape: MaterialStatePropertyAll(
+          shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

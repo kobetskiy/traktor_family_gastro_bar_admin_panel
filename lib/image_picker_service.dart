@@ -29,16 +29,12 @@ class ImagePickerService {
     required String appBarTitle,
     required Uint8List image,
   }) async {
-    try {
-      String imageURL = await uploadImageToStorage('banner', image);
-      await _firestore.collection(DatabaseCollections.bannersCollection).add({
-        'title': title,
-        'content': content,
-        'appBarTitle': appBarTitle,
-        'imageURL': imageURL
-      });
-    } catch (e) {
-      
-    }
+    String imageURL = await uploadImageToStorage('banners/${image.hashCode}', image);
+    await _firestore.collection(DatabaseCollections.bannersCollection).add({
+      'title': title,
+      'content': content,
+      'appBarTitle': appBarTitle,
+      'imageURL': imageURL
+    });
   }
 }
