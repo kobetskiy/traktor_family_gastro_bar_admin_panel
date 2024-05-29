@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:traktor_family_gastro_bar_admin_panel/core/ui/database_constants.dart';
 import 'package:traktor_family_gastro_bar_admin_panel/image_picker_service.dart';
 
 class AppScreen extends StatefulWidget {
@@ -40,7 +42,10 @@ class _AppScreenState extends State<AppScreen> {
           appBarTitle: appBarTitleController.text.trim(),
           image: selectedImage!,
         );
-        showAlertDialog('Data has been sent successfuly');
+        showAlertDialog('Data has been sent successfully');
+        titleController.clear();
+        contentController.clear();
+        appBarTitleController.clear();
       } else {
         showAlertDialog("Text fields must be full and image must be loaded");
       }
@@ -54,7 +59,7 @@ class _AppScreenState extends State<AppScreen> {
             TextField(
               controller: titleController,
               decoration: const InputDecoration(
-                label: Text('title'),
+                label: Text('Title'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -62,7 +67,7 @@ class _AppScreenState extends State<AppScreen> {
             TextField(
               controller: contentController,
               decoration: const InputDecoration(
-                label: Text('content'),
+                label: Text('Content'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -70,7 +75,7 @@ class _AppScreenState extends State<AppScreen> {
             TextField(
               controller: appBarTitleController,
               decoration: const InputDecoration(
-                label: Text('appBarTitle'),
+                label: Text('AppBar Title'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -79,10 +84,10 @@ class _AppScreenState extends State<AppScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButtonWidget(
-                  text: "Galery",
+                  text: "Gallery",
                   onPressed: () async {
                     selectedImage =
-                        await imagePickerService.pickImageFromGalery();
+                        await imagePickerService.pickImageFromGallery();
                     setState(() {});
                   },
                 ),
@@ -100,7 +105,9 @@ class _AppScreenState extends State<AppScreen> {
               text: "Send",
               width: 200,
               height: 70,
-            )
+            ),
+            const SizedBox(height: 30),
+            const Expanded(child: DataListWidget()),
           ],
         ),
       ),
@@ -130,7 +137,7 @@ class OutlinedButtonWidget extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: ButtonStyle(
-          shape: WidgetStatePropertyAll(
+          shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -138,6 +145,70 @@ class OutlinedButtonWidget extends StatelessWidget {
         ),
         child: Text(text),
       ),
+    );
+  }
+}
+
+class DataListWidget extends StatefulWidget {
+  const DataListWidget({super.key});
+
+  @override
+  State<DataListWidget> createState() => _DataListWidgetState();
+}
+
+class _DataListWidgetState extends State<DataListWidget> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _deleteItem(String id) async {
+    await _firestore
+        .collection(DatabaseCollections.bannersCollection)
+        .doc(id)
+        .delete();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection(DatabaseCollections.bannersCollection)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('Error fetching data.'));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No data available.'));
+        }
+
+        final banners = snapshot.data!.docs;
+
+        return ListView.builder(
+          itemCount: banners.length,
+          itemBuilder: (context, index) {
+            final banner = banners[index];
+            final data = banner.data() as Map<String, dynamic>;
+
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: ListTile(
+                title: Text(data['title']),
+                subtitle: Text(data['content']),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    _deleteItem(banner.id);
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

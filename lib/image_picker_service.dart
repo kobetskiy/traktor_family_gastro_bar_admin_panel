@@ -10,7 +10,7 @@ class ImagePickerService {
   final _storage = FirebaseStorage.instance;
   final _firestore = FirebaseFirestore.instance;
 
-  Future<Uint8List> pickImageFromGalery() async {
+  Future<Uint8List> pickImageFromGallery() async {
     final selectedImage =
         await _imagePicker.pickImage(source: ImageSource.gallery);
     return await selectedImage!.readAsBytes();
