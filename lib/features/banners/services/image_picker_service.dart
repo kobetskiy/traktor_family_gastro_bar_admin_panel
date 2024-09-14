@@ -16,7 +16,7 @@ class ImagePickerService {
     return await selectedImage!.readAsBytes();
   }
 
-  Future<String> uploadImageToStorage(String child, Uint8List? image) async {
+  Future<String> _uploadImageToStorage(String child, Uint8List? image) async {
     final ref = _storage.ref().child(child);
     final uploadTask = ref.putData(image!);
     final downloadedURL = await (await uploadTask).ref.getDownloadURL();
@@ -29,7 +29,7 @@ class ImagePickerService {
     required String appBarTitle,
     required Uint8List image,
   }) async {
-    String imageURL = await uploadImageToStorage('banners/${image.hashCode}', image);
+    String imageURL = await _uploadImageToStorage('banners/${image.hashCode}', image);
     await _firestore.collection(DatabaseCollections.bannersCollection).add({
       'title': title,
       'content': content,
